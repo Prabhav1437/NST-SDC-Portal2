@@ -34,3 +34,14 @@ Thumbs.db
 
 # Prisma
 server/prisma/migrations
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.pyre/
+.python-version
+db.sqlite3

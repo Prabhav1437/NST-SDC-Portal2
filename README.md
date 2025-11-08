@@ -27,9 +27,16 @@ nstsdc-portal/
 │   ├── vite.config.js
 │   ├── eslint.config.js
 │   └── package.json
-├── server/              # Node.js backend (Express)
-│   ├── index.js
-│   └── package.json
+├── server/              # Django backend
+│   ├── manage.py
+│   ├── pyproject.toml
+│   ├── uv.lock
+│   ├── requirements.txt
+│   └── config/
+│       ├── __init__.py
+│       ├── settings.py
+│       ├── urls.py
+│       └── wsgi.py
 └── README.md
 ```
 
