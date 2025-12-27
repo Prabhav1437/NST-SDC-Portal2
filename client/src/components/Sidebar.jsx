@@ -10,12 +10,12 @@ const Sidebar = () => {
         { name: 'Project', path: '/projects', icon: FolderKanban },
         { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
         { name: 'Attendance', path: '/attendance', icon: UserCheck },
-        { name: 'Meetings', path: '/meetings', icon: Calendar }
+        { name: 'Calendar', path: '/calendar', icon: Calendar }
     ];
 
     return (
         <div
-            className={`bg-[#5A5A5A] min-h-screen flex flex-col transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'
+            className={`bg-[#5A5A5A] min-h-screen flex flex-col transition-all duration-300 relative z-20 ${isCollapsed ? 'w-20' : 'w-64'
                 }`}
         >
             {/* Header with Logo and Toggle Button */}
@@ -51,16 +51,24 @@ const Sidebar = () => {
                             key={item.path}
                             to={item.path}
                             className={({ isActive }) =>
-                                `flex items-center gap-3 px-4 py-3 mb-2 rounded-lg text-white transition-all ${isActive ? 'bg-[#7FD4B8]' : 'hover:bg-gray-600'
+                                `relative group flex items-center gap-3 px-4 py-3 mb-2 rounded-lg text-white transition-all ${isActive ? 'bg-[#7FD4B8]' : 'hover:bg-gray-600'
                                 } ${isCollapsed ? 'justify-center' : ''}`
                             }
-                            title={isCollapsed ? item.name : ''}
                         >
                             <Icon size={20} className="flex-shrink-0" />
                             {!isCollapsed && (
-                                <span className="whitespace-nowrap">
+                                <span className="whitespace-nowrap font-medium">
                                     {item.name}
                                 </span>
+                            )}
+
+                            {/* Custom Tooltip */}
+                            {isCollapsed && (
+                                <div className="absolute left-full ml-6 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none shadow-lg">
+                                    {item.name}
+                                    {/* Arrow */}
+                                    <div className="absolute top-1/2 -left-1 -mt-1 border-4 border-transparent border-r-gray-800"></div>
+                                </div>
                             )}
                         </NavLink>
                     );
@@ -71,12 +79,21 @@ const Sidebar = () => {
             {/* Footer Section */}
             <div className="p-4">
                 <button
-                    className={`nav-item flex items-center gap-3 px-4 py-3 w-full rounded-lg text-gray-800 font-semibold bg-[#7FD4B8] transition-all duration-300 hover:bg-[#6ec2a5] hover:shadow-lg hover:-translate-y-0.5 ${isCollapsed ? 'justify-center' : ''}`}
+                    className={`nav-item relative group flex items-center gap-3 px-4 py-3 w-full rounded-lg text-gray-800 font-semibold bg-[#7FD4B8] transition-all duration-300 hover:bg-[#6ec2a5] hover:shadow-lg hover:-translate-y-0.5 ${isCollapsed ? 'justify-center' : ''}`}
                     onClick={() => console.log('Login clicked')}
                 >
                     <UserCheck size={20} className="flex-shrink-0" />
                     {!isCollapsed && (
                         <span className="whitespace-nowrap">Login</span>
+                    )}
+
+                    {/* Custom Tooltip for Login */}
+                    {isCollapsed && (
+                        <div className="absolute left-full ml-6 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none shadow-lg">
+                            Login
+                            {/* Arrow */}
+                            <div className="absolute top-1/2 -left-1 -mt-1 border-4 border-transparent border-r-gray-800"></div>
+                        </div>
                     )}
                 </button>
             </div>

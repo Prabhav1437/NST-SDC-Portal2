@@ -5,6 +5,7 @@ import Projects from './pages/Projects';
 import Leaderboard from './pages/Leaderboard';
 import Attendance from './pages/Attendance';
 import Meetings from './pages/Meetings';
+import Calendar from './pages/Calendar';
 
 function App() {
   return (
@@ -16,7 +17,9 @@ function App() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/attendance" element={<Attendance />} />
+
           <Route path="/meetings" element={<Meetings />} />
+          <Route path="/calendar" element={<Calendar />} />
         </Routes>
       </main>
     </div>
@@ -24,4 +27,3 @@ function App() {
 }
 
 export default App;
-
