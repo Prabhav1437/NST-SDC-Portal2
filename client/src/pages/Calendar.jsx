@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, MoreHorizontal,
     X, MapPin, Users, AlignLeft, Search, HelpCircle, Settings, Menu
 } from 'lucide-react';
-import { meetings as initialMeetings } from '../data/mockData';
+import { getAllEvents } from '../api/events';
 
 // --- Modal Components ---
 
@@ -11,10 +11,11 @@ const EventModal = ({ event, onClose }) => {
     if (!event) return null;
 
     const styleColors = {
-        team: 'bg-blue-600',
-        client: 'bg-green-600',
-        dev: 'bg-purple-600',
-        design: 'bg-pink-600',
+        meetup: 'bg-blue-600',
+        workshop: 'bg-purple-600',
+        hackathon: 'bg-orange-600',
+        webinar: 'bg-indigo-600',
+        other: 'bg-gray-600',
         default: 'bg-blue-600'
     };
 
@@ -26,8 +27,6 @@ const EventModal = ({ event, onClose }) => {
                 <div className={`${headerColor} px-6 py-4 flex justify-between items-start`}>
                     <h3 className="text-white text-lg font-medium tracking-wide">Event Details</h3>
                     <div className="flex items-center space-x-2">
-                        {/* Mock Actions */}
-                        <button className="text-white/80 hover:text-white"><Settings className="w-4 h-4" /></button>
                         <button onClick={onClose} className="text-white/80 hover:text-white rounded-full hover:bg-white/20 p-1">
                             <X className="w-5 h-5" />
                         </button>
@@ -55,14 +54,18 @@ const EventModal = ({ event, onClose }) => {
                         )}
 
                         <div className="flex items-center">
-                            <Users className="w-5 h-5 text-gray-400 mr-4" />
-                            <p className="text-gray-600 text-sm">2 guests</p>
+                            <MapPin className="w-5 h-5 text-gray-400 mr-4" />
+                            <p className="text-gray-600 text-sm">{event.location}</p>
                         </div>
 
-                        <div className="flex items-center">
-                            <MapPin className="w-5 h-5 text-gray-400 mr-4" />
-                            <p className="text-gray-600 text-sm">Google Meet</p>
-                        </div>
+                        {event.meeting_link && (
+                            <div className="flex items-center">
+                                <div className="w-5 mr-4"></div>
+                                <a href={event.meeting_link} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-sm hover:underline">
+                                    Join Meeting &rarr;
+                                </a>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -74,14 +77,43 @@ const EventModal = ({ event, onClose }) => {
 
 const Calendar = () => {
     // State
-    const [currentDate, setCurrentDate] = useState(new Date(2025, 11, 27)); // Main Calendar State
-    const [miniCurrentDate, setMiniCurrentDate] = useState(new Date(2025, 11, 27)); // Mini Calendar State (Independent)
-    const [meetings, setMeetings] = useState([]); // Start with empty events as per user request
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [meetings, setMeetings] = useState([]);
     const [selectedEvent, setSelectedEvent] = useState(null);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [view, setView] = useState('month'); // month, week, day, list
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchEvents = async () => {
+            setLoading(true);
+            try {
+                const data = await getAllEvents();
+                // Map backend data to calendar format
+                const mappedEvents = data.map(event => {
+                    const dateObj = new Date(event.event_date);
+                    return {
+                        id: event.id,
+                        title: event.title,
+                        description: event.description,
+                        date: dateObj,
+                        startTime: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        endTime: new Date(dateObj.getTime() + 60 * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), // Assume 1 hour duration if not specified
+                        type: event.event_type || 'meetup',
+                        location: event.location || 'Online',
+                        meeting_link: event.meeting_link
+                    };
+                });
+                setMeetings(mappedEvents);
+            } catch (err) {
+                console.error("Failed to load events", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchEvents();
+    }, []);
 
     // Helpers
     const getDaysInMonth = (date) => {
@@ -121,9 +153,18 @@ const Calendar = () => {
         (m.description && m.description.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
-    const miniDays = getDaysInMonth(miniCurrentDate);
     const days = getDaysInMonth(currentDate);
     const weekDaysList = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    const getEventTypeStyles = (type) => {
+        switch (type) {
+            case 'meetup': return 'bg-blue-100 text-blue-700 border-l-2 border-blue-500';
+            case 'workshop': return 'bg-purple-100 text-purple-700 border-l-2 border-purple-500';
+            case 'hackathon': return 'bg-orange-100 text-orange-700 border-l-2 border-orange-500';
+            case 'webinar': return 'bg-indigo-100 text-indigo-700 border-l-2 border-indigo-500';
+            default: return 'bg-gray-100 text-gray-700 border-l-2 border-gray-500';
+        }
+    };
 
     // Render Views
     const renderMonthView = () => (
@@ -153,10 +194,7 @@ const Calendar = () => {
                                             <div
                                                 key={event.id}
                                                 onClick={() => setSelectedEvent(event)}
-                                                className={`text-[10px] px-2 py-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity ${event.type === 'team' ? 'bg-blue-100 text-blue-700 border-l-2 border-blue-500' :
-                                                    event.type === 'client' ? 'bg-green-100 text-green-700 border-l-2 border-green-500' :
-                                                        'bg-purple-100 text-purple-700 border-l-2 border-purple-500'
-                                                    }`}
+                                                className={`text-[10px] px-2 py-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity ${getEventTypeStyles(event.type)}`}
                                             >
                                                 {event.startTime} {event.title}
                                             </div>
@@ -198,10 +236,10 @@ const Calendar = () => {
                                         <div
                                             key={event.id}
                                             onClick={() => setSelectedEvent(event)}
-                                            className="relative z-10 bg-white border border-gray-200 p-2 rounded shadow-sm hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-blue-500"
+                                            className={`relative z-10 p-2 rounded shadow-sm hover:shadow-md transition-shadow cursor-pointer ${getEventTypeStyles(event.type)}`}
                                         >
-                                            <div className="text-xs font-semibold text-gray-800 truncate">{event.title}</div>
-                                            <div className="text-[10px] text-gray-500">{event.startTime} - {event.endTime}</div>
+                                            <div className="text-xs font-semibold truncate">{event.title}</div>
+                                            <div className="text-[10px] opacity-75">{event.startTime} - {event.endTime}</div>
                                         </div>
                                     ))}
                                     {dayEvents.length === 0 && (
@@ -238,13 +276,13 @@ const Calendar = () => {
                                     <div className="w-24 pt-2 text-right text-sm text-gray-500 font-medium mr-6">
                                         {event.startTime}
                                     </div>
-                                    <div className="flex-1 bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all border-l-4 border-l-purple-500">
-                                        <h3 className="font-semibold text-gray-800 text-lg mb-1">{event.title}</h3>
-                                        <div className="flex items-center text-sm text-gray-500 mb-2">
+                                    <div className={`flex-1 rounded-lg p-4 shadow-sm hover:shadow-md transition-all ${getEventTypeStyles(event.type)}`}>
+                                        <h3 className="font-semibold text-lg mb-1">{event.title}</h3>
+                                        <div className="flex items-center text-sm opacity-75 mb-2">
                                             <Clock className="w-4 h-4 mr-2" />
                                             {event.startTime} - {event.endTime}
                                         </div>
-                                        {event.description && <p className="text-gray-600 text-sm">{event.description}</p>}
+                                        {event.description && <p className="text-sm opacity-90">{event.description}</p>}
                                     </div>
                                 </div>
                             ))
@@ -261,7 +299,7 @@ const Calendar = () => {
     };
 
     const renderListView = () => {
-        // Sort all future meetings
+        // Sort all meetings by date
         const sortedMeetings = [...filteredMeetings].sort((a, b) => a.date - b.date);
 
         return (
@@ -284,9 +322,10 @@ const Calendar = () => {
                                     <div>
                                         <div className="flex items-center space-x-3 mb-1">
                                             <span className="text-sm font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{event.startTime}</span>
-                                            <h4 className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">{event.title}</h4>
+                                            <h4 className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors uppercase tracking-wide text-xs bg-gray-200 px-2 py-0.5 rounded ml-2">{event.type}</h4>
+                                            <h4 className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors ml-2">{event.title}</h4>
                                         </div>
-                                        <p className="text-sm text-gray-500 pl-[4.5rem] truncate max-w-md">{event.description || 'No description'}</p>
+                                        <p className="text-sm text-gray-500 pl-[5.5rem] truncate max-w-md">{event.description || 'No description'}</p>
                                     </div>
                                     <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-gray-500 transition-colors" />
                                 </div>
@@ -303,18 +342,17 @@ const Calendar = () => {
         );
     };
 
+    if (loading) return <div className="p-8 text-center text-gray-500">Loading calendar...</div>;
+
     return (
         <div className="flex flex-col h-screen bg-white">
             {/* Top Navigation Bar */}
             <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white/80 backdrop-blur-md sticky top-0 z-20 shadow-sm transition-all">
                 <div className="flex items-center space-x-6">
-
-
                     <button
                         onClick={() => {
                             const now = new Date();
                             setCurrentDate(now);
-                            setMiniCurrentDate(now);
                         }}
                         className="px-5 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm active:scale-95 transition-all duration-200"
                     >
@@ -387,15 +425,11 @@ const Calendar = () => {
             </header>
 
             <div className="flex flex-1 overflow-hidden">
-                {/* Sidebar */}
-
-
                 {/* Main Content Area */}
                 {view === 'month' && renderMonthView()}
                 {view === 'week' && renderWeekView()}
                 {view === 'day' && renderDayView()}
                 {view === 'list' && renderListView()}
-
             </div>
 
             {/* Modals */}
