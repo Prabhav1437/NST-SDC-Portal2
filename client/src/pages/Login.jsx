@@ -79,10 +79,6 @@ const Login = () => {
                     </button>
                 </form>
 
-                <div className="mt-4 text-center text-sm text-gray-600">
-                    <p>Demo Credentials:</p>
-                    <p>User: user1 / Pass: password123</p>
-                </div>
             </div>
         </div>
     );
