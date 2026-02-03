@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Menu, Home, FolderKanban, Users, Trophy, UserCheck, Calendar } from 'lucide-react';
+import { Menu, Home, FolderKanban, Users, Trophy, UserCheck, Calendar, User } from 'lucide-react';
 
 const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -12,7 +12,8 @@ const Sidebar = () => {
         { name: 'Events', path: '/events', icon: Calendar },
         { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
         { name: 'Attendance', path: '/attendance', icon: UserCheck },
-        { name: 'Calendar', path: '/calendar', icon: Calendar }
+        { name: 'Calendar', path: '/calendar', icon: Calendar },
+        { name: 'Profile', path: '/profile', icon: User }
     ];
 
     return (

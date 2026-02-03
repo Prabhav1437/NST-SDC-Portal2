@@ -11,6 +11,7 @@ from .serializers import (
     UserProfileUpdateSerializer,
     UserRegistrationSerializer,
     LeaderboardSerializer,
+    PasswordChangeSerializer,
 )
 
 User = get_user_model()
@@ -91,6 +92,33 @@ class UserRegistrationView(APIView):
         # Return user data
         user_serializer = UserSerializer(user)
         return Response(user_serializer.data, status=status.HTTP_201_CREATED)
+
+
+class UserPasswordChangeView(APIView):
+    """
+    An endpoint for changing password.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = PasswordChangeSerializer(data=request.data)
+
+        if serializer.is_valid():
+            # Check old password
+            if not request.user.check_password(serializer.data.get("old_password")):
+                return Response(
+                    {"old_password": ["Wrong password."]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            # set_password also hashes the password that the user will get
+            request.user.set_password(serializer.data.get("new_password"))
+            request.user.save()
+            return Response(
+                {"detail": "Password updated successfully"}, status=status.HTTP_200_OK
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):

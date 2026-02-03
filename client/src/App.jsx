@@ -9,6 +9,7 @@ import Leaderboard from './pages/Leaderboard';
 import Attendance from './pages/Attendance';
 import Meetings from './pages/Meetings';
 import Calendar from './pages/Calendar';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
 
           <Route path="/meetings" element={<Meetings />} />
           <Route path="/calendar" element={<Calendar />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </main>
     </div>
